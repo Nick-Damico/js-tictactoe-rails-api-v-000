@@ -12,5 +12,6 @@
 //
 //= require jquery
 //= require jquery_ujs
-//= require tictactoe
+
+//= require tictactoe-oop
 //= require_tree .
