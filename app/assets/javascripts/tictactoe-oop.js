@@ -19,11 +19,14 @@ var winningCombo = [
 ];
 var newGameState = ["","","","","","","","",""];
 
+
+
 ////////////////////////////////////////////////////////
 // DOM Elements
 ////////////////////////////////////////////////////////
 
 var squares = document.getElementsByTagName('td');
+
 
 
 ////////////////////////////////////////////////////////
@@ -40,7 +43,9 @@ function isEven(num) {
 }
 
 function newGame() {
-  return new Game;
+  Board.reset();
+  turn = 0;
+  return currentGame = new Game;;
 }
 
 
@@ -53,7 +58,17 @@ function newGame() {
 // Game Constructor
 ////////////////////////
 
+class Board {
+
+  static reset() {
+    [].forEach.call(squares, s => {
+  	   $(s).html("");
+    });
+  }
+}
+
 class Game {
+
   constructor(turnCount, state) {
     this.id = 0;
     turnCount ? this.turnCount = turnCount : this.turnCount = 0;
@@ -69,19 +84,24 @@ class Game {
     if ( $(square).is(':empty') ) {
       $(square).html(this.player());
       this.board = toArr(squares);
+      return true;
     }
+    return false;
   }
 
   doTurn(square) {
     // invokes updateState(square);
-    this.updateState(square)
+    let updated = this.updateState(square)
     // invokes checkWinner();
-    if ( !this.checkWinner() ) {
+    if ( !this.checkWinner() && updated ) {
       // increments this.turnCount
       ++this.turnCount;
+      console.log(this.turnCount);
     }
     if ( this.turnCount === 9 ) {
       this.setMessage('Tie Game.');
+      // Save
+      newGame();
     }
   }
 
@@ -102,15 +122,6 @@ class Game {
 
 }
 
-class Board {
-
-
-  static reset() {
-    [].forEach.call(squares, s => {
-  	   $(s).html("");
-    });
-  }
-}
 
 
 ////////////////////////////////////////////////////////
@@ -124,6 +135,7 @@ function attachListeners() {
 }
 
 
+
 ////////////////////////////////////////////////////////
 // DOM Ready Function
 ////////////////////////////////////////////////////////
@@ -132,5 +144,5 @@ $(function() {
   // Attach Listeners
   attachListeners();
   // instantiate Game instance at browser load.
-  currentGame = newGame();
+  newGame();
 });
