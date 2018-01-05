@@ -65,6 +65,15 @@ class Board {
   	   $(s).html("");
     });
   }
+
+  static buildBtn(game) {
+    return `<button id="${game.id}">Game ${game.id}</button>`;
+  }
+
+  static appendGamesBtn(btn) {
+    $('#games').append(btn);
+  }
+
 }
 
 ////////////////////////
@@ -78,6 +87,7 @@ class Game {
     turnCount ? this.turnCount = turnCount : this.turnCount = 0;
     state ? this.state = state : this.state = newGameState;
     Game.all(this);
+    this.won = false;
   }
 
   static all(obj) {
@@ -85,9 +95,26 @@ class Game {
       this.log = [];
     }
     if (obj) {
-      this.log.push(obj);
+      if ( Array.isArray(obj) ){
+        for(let inst of obj) {
+          this.buildGame(inst);
+        }
+      } else {
+        this.log.push(obj);
+      }
     }
     return this.log;
+  }
+
+  static buildGame(obj) {
+    let board = obj.attributes.state;
+    let count = board.filter((value) => value !== "").length;
+    return new Game(obj.id, count, board);
+  }
+
+  static last() {
+    let gameArr = this.all();
+    return gameArr[gameArr.length - 1]
   }
 
   static find_by_id(id) {
@@ -113,12 +140,14 @@ class Game {
 
   doTurn(square) {
     // invokes updateState(square);
-    let updated = this.updateState(square)
-    // invokes checkWinner();
-    if ( !this.checkWinner() && updated ) {
-      // increments this.turnCount
-      ++this.turnCount;
-      console.log(this.turnCount);
+    if (!this.won) {
+      let updated = this.updateState(square)
+      // invokes checkWinner();
+      if ( !this.checkWinner() && updated ) {
+        // increments this.turnCount
+        ++this.turnCount;
+        console.log(this.turnCount);
+      }
     }
     if ( this.turnCount === 9 ) {
       this.setMessage('Tie Game.');
@@ -136,6 +165,7 @@ class Game {
     for (let combo of winningCombo) {
       if(table[combo[0]] !== '' && table[combo[0]] === table[combo[1]] && table[combo[1]] === table[combo[2]]) {
         this.setMessage(`Player ${this.player()} Won!`);
+        this.won = true;
         return true;
       }
     }
@@ -151,9 +181,38 @@ class Game {
 ////////////////////////////////////////////////////////
 
 function attachListeners() {
+  tableListner();
+  previousBtnListener();
+}
+
+function tableListner() {
   $('table').on('click', 'td', function(e) {
     currentGame.doTurn(e.target);
   });
+}
+
+function previousBtnListener() {
+  $('#previous').on('click', previousGames )
+}
+
+////////////////////////////////////////////////////////
+// AJAX | API Requests
+////////////////////////////////////////////////////////
+
+function previousGames() {
+  if ( $('#games').children().length === 0 ) {
+  $.get('/games')
+    .done(function(data) {
+      let gamesData = data.data;
+      if ( Game.all().length === 1) {
+        Game.all(gamesData);
+      }
+      let games = Game.all();
+      for(let i = 0; i < games.length; i++) {
+        Board.appendGamesBtn( Board.buildBtn(games[i]) );
+      }
+    });
+  }
 }
 
 
