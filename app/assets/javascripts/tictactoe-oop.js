@@ -39,6 +39,12 @@ function isEven(num) {
   return num % 2 === 0;
 }
 
+function newGame() {
+  return new Game;
+}
+
+
+
 ////////////////////////////////////////////////////////
 // Constructors
 ////////////////////////////////////////////////////////
@@ -96,6 +102,16 @@ class Game {
 
 }
 
+class Board {
+
+
+  static reset() {
+    [].forEach.call(squares, s => {
+  	   $(s).html("");
+    });
+  }
+}
+
 
 ////////////////////////////////////////////////////////
 // Events | Listeners
@@ -116,5 +132,5 @@ $(function() {
   // Attach Listeners
   attachListeners();
   // instantiate Game instance at browser load.
-  currentGame = new Game;
+  currentGame = newGame();
 });
