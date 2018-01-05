@@ -4,7 +4,6 @@
 // Global Variables
 ////////////////////////////////////////////////////////
 
-var turn = 0;
 // var currentGameId = 0; game.id from currentGame.id below;
 var winningCombo = [
   [0,1,2], // TOP ROW
@@ -16,7 +15,6 @@ var winningCombo = [
   [0,4,8], // DIAGONAL TOP LEFT, BOTTOM RIGHT
   [2,4,6]  // DIAGONAL TOP RIGHT, BOTTOM LEFT
 ];
-var newGameState = ["","","","","","","","",""];
 
 
 
@@ -39,12 +37,6 @@ function toArr(collection){
 
 function isEven(num) {
   return num % 2 === 0;
-}
-
-function newGame() {
-  Board.reset();
-  turn = 0;
-  return currentGame = new Game;
 }
 
 
@@ -84,7 +76,7 @@ class Game {
   constructor(id,turnCount, state) {
     id ? this.id = id : this.id = 0;
     turnCount ? this.turnCount = turnCount : this.turnCount = 0;
-    state ? this.state = state : this.state = newGameState;
+    state ? this.state = state : this.state = ["","","","","","","","",""];
     Game.all(this);
     this.won = false;
   }
@@ -122,8 +114,29 @@ class Game {
     return gameArr[gameArr.length - 1]
   }
 
-  static save() {
+  static newGame() {
+    Board.reset();
+    return currentGame = new Game;
+  }
 
+  static save() {
+    if ( currentGame.id ) {
+      $.ajax({
+        type: 'PATCH',
+        url: '/games/' + currentGame.id,
+        data: {state: currentGame.state},
+        dataType: 'json'
+      }).done(function(json) {
+        console.log(`Game ${json.data.id} updated.`);
+      });
+    } else {
+      $.post('/games', {state: currentGame.state})
+       .done(function(data) {
+         let game = data.data;
+         currentGame.id = game.id;
+         Board.appendGamesBtn( Board.buildBtn( currentGame ) );
+       });
+    }
   }
 
   // INSTANCE METHODS()
@@ -190,6 +203,7 @@ function attachListeners() {
   tableListner();
   previousBtnListener();
   saveBtn();
+  clearBtn();
 }
 
 function tableListner() {
@@ -203,7 +217,11 @@ function previousBtnListener() {
 }
 
 function saveBtn() {
-  $('#save').on('click', saveGame);
+  $('#save').on('click', Game.save);
+}
+
+function clearBtn() {
+  $('#clear').on('click', Game.newGame);
 }
 
 ////////////////////////////////////////////////////////
@@ -226,26 +244,6 @@ function previousGames() {
   }
 }
 
-function saveGame() {
-  if ( currentGame.id ) {
-    $.ajax({
-      type: 'PATCH',
-      url: '/games/' + currentGame.id,
-      data: {state: currentGame.state},
-      dataType: 'json'
-    }).done(function(json) {
-      console.log(`Game ${json.data.id} updated.`);
-    });
-  } else {
-    $.post('/games', {state: currentGame.state})
-     .done(function(data) {
-       let game = data.data;
-       currentGame.id = game.id;
-       Board.appendGamesBtn( Board.buildBtn( currentGame ) );
-     });
-  }
-}
-
 ////////////////////////////////////////////////////////
 // DOM Ready Function
 ////////////////////////////////////////////////////////
@@ -254,5 +252,5 @@ $(function() {
   // Attach Listeners
   attachListeners();
   // instantiate Game instance at browser load.
-  newGame();
+  currentGame = new Game();
 });
