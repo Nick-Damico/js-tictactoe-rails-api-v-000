@@ -106,17 +106,25 @@ class Game {
   }
 
   static find_by_id(id) {
-    return this.all().filter((game) => game.id === id);
+    return this.log.filter((game) => game.id === id)[0];
   }
 
   static last() {
-    let gameArr = this.all();
+    let gameArr = this.log;
     return gameArr[gameArr.length - 1]
   }
 
   static newGame() {
     Board.reset();
     return currentGame = new Game;
+  }
+
+  static restoreGame(button) {
+    let id = $(button).attr("id");
+    currentGame = Game.find_by_id( id );
+    for(let i = 0; i < squares.length; i++) {
+      $(squares[i]).html( currentGame.state[i] );
+    }
   }
 
   static save() {
@@ -170,8 +178,8 @@ class Game {
     }
     if ( this.turnCount === 9 ) {
       this.setMessage('Tie Game.');
-      // Save
-      newGame();
+      Game.save();
+      Game.newGame();
     }
   }
 
@@ -185,6 +193,7 @@ class Game {
       if(table[combo[0]] !== '' && table[combo[0]] === table[combo[1]] && table[combo[1]] === table[combo[2]]) {
         this.setMessage(`Player ${this.player()} Won!`);
         this.won = true;
+        Game.save();
         return true;
       }
     }
@@ -204,6 +213,7 @@ function attachListeners() {
   previousBtnListener();
   saveBtn();
   clearBtn();
+  gameBtns();
 }
 
 function tableListner() {
@@ -222,6 +232,12 @@ function saveBtn() {
 
 function clearBtn() {
   $('#clear').on('click', Game.newGame);
+}
+
+function gameBtns() {
+  $('#games').on('click', 'button', function(e) {
+    Game.restoreGame(e.target);
+  });
 }
 
 ////////////////////////////////////////////////////////
