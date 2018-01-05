@@ -6,7 +6,6 @@
 
 var turn = 0;
 // var currentGameId = 0; game.id from currentGame.id below;
-var currentGame;
 var winningCombo = [
   [0,1,2], // TOP ROW
   [3,4,5], // MIDDLE ROW
@@ -90,6 +89,8 @@ class Game {
     this.won = false;
   }
 
+  // CLASS METHODS()
+
   static all(obj) {
     if (this.log === undefined) {
       this.log = [];
@@ -112,16 +113,22 @@ class Game {
     return new Game(obj.id, count, board);
   }
 
+  static find_by_id(id) {
+    return this.all().filter((game) => game.id === id);
+  }
+
   static last() {
     let gameArr = this.all();
     return gameArr[gameArr.length - 1]
   }
 
-  static find_by_id(id) {
-    return this.all().filter((game) => game.id === id);
+  static save() {
+
   }
 
-  static currentGame() {
+  // INSTANCE METHODS()
+
+  currentGame() {
     return this;
   }
 
@@ -132,7 +139,7 @@ class Game {
   updateState(square) {
     if ( $(square).is(':empty') ) {
       $(square).html(this.player());
-      this.board = toArr(squares);
+      this.state = toArr(squares);
       return true;
     }
     return false;
@@ -146,7 +153,6 @@ class Game {
       if ( !this.checkWinner() && updated ) {
         // increments this.turnCount
         ++this.turnCount;
-        console.log(this.turnCount);
       }
     }
     if ( this.turnCount === 9 ) {
@@ -183,6 +189,7 @@ class Game {
 function attachListeners() {
   tableListner();
   previousBtnListener();
+  saveBtn();
 }
 
 function tableListner() {
@@ -193,6 +200,10 @@ function tableListner() {
 
 function previousBtnListener() {
   $('#previous').on('click', previousGames )
+}
+
+function saveBtn() {
+  $('#save').on('click', saveGame);
 }
 
 ////////////////////////////////////////////////////////
@@ -208,14 +219,32 @@ function previousGames() {
         Game.all(gamesData);
       }
       let games = Game.all();
-      for(let i = 0; i < games.length; i++) {
+      for(let i = 1; i < games.length; i++) {
         Board.appendGamesBtn( Board.buildBtn(games[i]) );
       }
     });
   }
 }
 
-
+function saveGame() {
+  if ( currentGame.id ) {
+    $.ajax({
+      type: 'PATCH',
+      url: '/games/' + currentGame.id,
+      data: {state: currentGame.state},
+      dataType: 'json'
+    }).done(function(json) {
+      console.log(`Game ${json.data.id} updated.`);
+    });
+  } else {
+    $.post('/games', {state: currentGame.state})
+     .done(function(data) {
+       let game = data.data;
+       currentGame.id = game.id;
+       Board.appendGamesBtn( Board.buildBtn( currentGame ) );
+     });
+  }
+}
 
 ////////////////////////////////////////////////////////
 // DOM Ready Function
