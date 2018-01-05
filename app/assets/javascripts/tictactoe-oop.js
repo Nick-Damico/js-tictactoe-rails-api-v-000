@@ -45,7 +45,7 @@ function isEven(num) {
 function newGame() {
   Board.reset();
   turn = 0;
-  return currentGame = new Game;;
+  return currentGame = new Game;
 }
 
 
@@ -55,7 +55,7 @@ function newGame() {
 ////////////////////////////////////////////////////////
 
 ////////////////////////
-// Game Constructor
+// Board Constructor
 ////////////////////////
 
 class Board {
@@ -67,13 +67,35 @@ class Board {
   }
 }
 
+////////////////////////
+// Game Constructor
+////////////////////////
+
 class Game {
 
-  constructor(turnCount, state) {
-    this.id = 0;
+  constructor(id,turnCount, state) {
+    id ? this.id = id : this.id = 0;
     turnCount ? this.turnCount = turnCount : this.turnCount = 0;
     state ? this.state = state : this.state = newGameState;
-    currentGame = this;
+    Game.all(this);
+  }
+
+  static all(obj) {
+    if (this.log === undefined) {
+      this.log = [];
+    }
+    if (obj) {
+      this.log.push(obj);
+    }
+    return this.log;
+  }
+
+  static find_by_id(id) {
+    return this.all().filter((game) => game.id === id);
+  }
+
+  static currentGame() {
+    return this;
   }
 
   player() {
